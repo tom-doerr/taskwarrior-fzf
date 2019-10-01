@@ -34,7 +34,7 @@ an action.
 #### Perform an action over the selected tasks
 
 - `D` marks the tasks as done (`task do`).
-- <kbd>Delete</kbd> Deletes the tasks (`task del`).
+- `X` Deletes the tasks (`task del`).
 - `U` undo the last action performed (`task undo`).
 - `E` edits the task in your editor (`task edit`).
 - `A` appends a text to the tasks using a shell input (`task append`).

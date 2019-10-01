@@ -40,6 +40,10 @@ an action.
 - `A` appends a text to the tasks using a shell input (`task append`).
 - `M` modifies a task using a shell input (`task modify`).
 
+⚠ Important Note! ⚠ The script expects all reports to put in their 1st column
+the task's number. You will get a warning when trying to perform actions upon
+a certain task if that's not the case. Adjust your reports accordingly!
+
 #### Change the current list of tasks
 
 Each of the following key bindings changes the list of tasks you can perform an

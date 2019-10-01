@@ -1,1 +1,159 @@
 #!/bin/sh
+
+# -----------------------------
+# aliases / helpers / variables
+# -----------------------------
+
+# The following alias is meant for rc options we'll always set unconditionally
+# so the UI will work
+alias tw='task rc.defaultwidth=0 rc.defaultheight=0 rc.verbose=nothing rc._forcecolor=on'
+
+# Make all less invocations interpret ANSI colors
+export LESS="-r"
+
+# set a file path that it's content will mark how to execute the next command
+# in the main loop
+current_filter=${XDG_RUNTIME_DIR:-${XDG_CACHE_DIR:-${TMP-/tmp}}}/taskfzf-current-filter
+if ! touch $current_filter; then
+	echo "$0: Can't create a marker file needed for internal state management." >&2
+	echo "$0: It's default location according to your environment is $current_filter" >&2
+	echo "$0: Please update either of the following environment variables so the file will be creatable." >&2
+	echo "$0: TMP" >&2
+	echo "$0: XDG_RUNTIME_DIR" >&2
+	echo "$0: XDG_CACHE_DIR" >&2
+	exit 3
+fi
+
+# --------------------------------------------------------------------------
+# If a _TASKFZF_ environmental variables is set (see explanation near
+# the main loop at the end), we'll need to do the following:
+# --------------------------------------------------------------------------
+
+# we'd want to quit after the action upon the tasks was made and only if we are not changing the list we are viewing
+if [ -n "$_TASKFZF_TASK_ACT" ]; then
+	# We clear the screen from previous output so it'll be easy to see what
+	# taskwarrior printed when doing the actions below.
+	clear
+	# checks if the arguments given to the task are numbers only
+	if [[ "$1" =~ [^0-9] ]]; then
+		echo "$0: It seems your current report doesn't have numbers at the beginning of the line fzf highlights." >&2
+		echo "$0: Please update your taskrc so all of your reports will print the task's ID at the left most column." >&2
+		echo "$0: Or, alternatively, choose a line that has a number in it's beginning." >&2
+		echo ---------------------------------------------------------------------------
+		echo Press any key to continue
+		read
+		exit $?
+	fi
+	# Actually perform the actions upon the tasks
+	case "$_TASKFZF_TASK_ACT" in
+		undo)
+			# Doesn't need arguments
+			task undo
+			;;
+		append|modify)
+			echo "Run command:"
+			read -p "task $_TASKFZF_TASK_ACT " args
+			task "$1" "$_TASKFZF_TASK_ACT" "$args"
+			;;
+		*)
+			task "$1" "$_TASKFZF_TASK_ACT" 
+			;;
+	esac
+	# Prints a banner for after action view - it's a dirty and dumb version of
+	# piping to less.
+	echo ---------------------------------------------------------------------------
+	echo End of \`task "$_TASKFZF_TASK_ACT"\` output. Press any key to continue
+	read
+	exit $?
+fi
+
+if [ -n "$_TASKFZF_LIST_CHANGE" ]; then
+	# We'll generate a tiny bit different string to save in our marker file in
+	# the case we are changing the report or the context
+	case $_TASKFZF_LIST_CHANGE in
+		report)
+			report_str="$(tw reports | head -n -1 | fzf --ansi --no-multi \
+				--bind='enter:execute@echo {1}@+abort' \
+			)"
+			# If the context wasn't changed, we take the 1st argument that has
+			# rc.context= given originally in the command line and that we
+			# saved in $current_filter in the initial run of the main loop.
+			for context_str in $(cat "$current_filter"); do
+				if [[ "$context_str" =~ "rc.context=" ]]; then
+					break
+				fi
+			done
+			;;
+		context)
+			context_str='rc.context='"$(tw context | fzf --ansi --no-multi \
+				--bind='enter:execute@echo {1}@+abort' \
+			)"
+			# If the report wasn't changed, we take the last argument that was given
+			# originally in the command line and that we saved in $current_filter in
+			# the initial run of the main loop.
+			for report_str in $(cat "$current_filter"); do
+				true
+			done
+			;;
+	esac
+	# We save the next command line arguments for the next, outer loop
+	echo "$context_str" "$report_str" > $current_filter
+	exit
+fi
+
+# We remove the marker file so we'll be able to know once inside the loop
+# whether this is an initial execution of our program or not. We can't use the
+# variables _TASKFZF_LIST_CHANGE and _TASKFZF_TASK_ACT themselves since we exit
+# if either of these variables is set and so we let go the outer loop continue
+# to execute.
+if [ -z "${_TASKFZF_LIST_CHANGE+1}" ] && [ -z "${_TASKFZF_TASK_ACT+1}" ]; then
+	rm -f $current_filter
+fi
+
+# -------------------------
+# Here starts the real shit
+# -------------------------
+
+# Every binding in fzf's interface, calls this very script with a special
+# environment variable _TASKFZF_TASK_ACT set to the appropriate value. This is
+# how we essentially accomplish 'helpers' which fzf needs to execute as
+# standalone scripts because it's a program and not a pure shell function.
+
+# While Ctrl-c wasn't pressed inside fzf
+while (($? != 130)); do
+
+	# If the marker file does exists, it's because the variables _TASKFZF_TASK_ACT
+	# or _TASKFZF_LIST_CHANGE were set. That's why we get the arguments for tw from there.
+	if [[ -w "$current_filter" ]]; then
+		tw_args="$(cat $current_filter)"
+	else
+		# otherwise, we can rest assure this is the initial run of this program and so: 
+		tw_args="$@"
+		# Save the current filter used as in our marker file for the next execution
+		echo "$tw_args" > $current_filter
+	fi
+
+	# A few things to notice: 
+	# 
+	# - See https://github.com/junegunn/fzf/issues/1593#issuecomment-498007983
+	# for an explanation of that tty redirection.
+	#
+	# - we add a 'print-query' action after 'execute' so this fzf process will
+	# quit afterwards, leaving space for the next iteration of the loop. We
+	# can't use abort because otherwise we'll get $? == 130 and the loop will
+	# quit.
+	#
+	tw $tw_args | fzf --ansi \
+		--multi \
+		--bind="D:execute(env _TASKFZF_TASK_ACT=do $0 {+1} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="X:execute(env _TASKFZF_TASK_ACT=delete $0 {+1} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="U:execute(env _TASKFZF_TASK_ACT=undo $0)+print-query" \
+		--bind="E:execute(env _TASKFZF_TASK_ACT=edit $0 {+1} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="A:execute(env _TASKFZF_TASK_ACT=append $0 {+1} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="M:execute(env _TASKFZF_TASK_ACT=modify $0 {+1} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="R:execute(env _TASKFZF_LIST_CHANGE=report $0)+print-query" \
+		--bind="C:execute(env _TASKFZF_LIST_CHANGE=context $0)+print-query" \
+		--bind="enter:execute(clear; task information {+1} | less)"
+		# TODO: take care somehow of the 'all' report where no ID is in the
+		# first column but a UUID is present.
+done

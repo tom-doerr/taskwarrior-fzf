@@ -42,11 +42,14 @@ an action.
 
 #### Change the current list of tasks
 
-Each of the following key bindings changes the list of tasks you can perform
-the actions from above by changing the context (`rc.context`) or the "report".
+Each of the following key bindings changes the list of tasks you can perform an
+actions upon. `taskfzf` does so by reprinting the list of tasks with
+a different context (`rc.context`) or with a different "report".
 
-Choosing a different context/report is also performed by `fzf` and the
-candidates are from `task reports` or `task contexts`.
+_Choosing_ a different context/report is also performed by `fzf`. `task
+reports` or `task contexts` supply the list of candidates.
+
+In the tasks view, you can prompt for a different report / context using:
 
 - `R` changes the current "report" (`task reports`).
 - `C` changes the current context (`task contexts`).

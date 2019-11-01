@@ -11,16 +11,18 @@ alias tw='task rc.defaultwidth=0 rc.defaultheight=0 rc.verbose=nothing rc._force
 # Make all less invocations interpret ANSI colors
 export LESS="-r"
 
+basename="$(basename $0)"
+
 # set a file path that it's content will mark how to execute the next command
 # in the main loop
 current_filter=${XDG_RUNTIME_DIR:-${XDG_CACHE_DIR:-${TMP-/tmp}}}/taskfzf-current-filter
 if ! touch $current_filter; then
-	echo "$0: Can't create a marker file needed for internal state management." >&2
-	echo "$0: It's default location according to your environment is $current_filter" >&2
-	echo "$0: Please update either of the following environment variables so the file will be creatable." >&2
-	echo "$0: TMP" >&2
-	echo "$0: XDG_RUNTIME_DIR" >&2
-	echo "$0: XDG_CACHE_DIR" >&2
+	echo "${basename}: Can't create a marker file needed for internal state management." >&2
+	echo "${basename}: It's default location according to your environment is $current_filter" >&2
+	echo "${basename}: Please update either of the following environment variables so the file will be creatable." >&2
+	echo "${basename}: TMP" >&2
+	echo "${basename}: XDG_RUNTIME_DIR" >&2
+	echo "${basename}: XDG_CACHE_DIR" >&2
 	exit 3
 fi
 
@@ -35,10 +37,16 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 	# taskwarrior printed when doing the actions below.
 	clear
 	# checks if the arguments given to the task are numbers only
-	if [[ "$1" =~ [^0-9] ]]; then
-		echo "$0: It seems your current report doesn't have numbers at the beginning of the line fzf highlights." >&2
-		echo "$0: Please update your taskrc so all of your reports will print the task's ID at the left most column." >&2
-		echo "$0: Or, alternatively, choose a line that has a number in it's beginning." >&2
+	if [[ "$_TASKFZF_REPORT" == "all" ]]; then
+		tasks_args=$(echo "$@" | grep -o '[0-9a-f]\{8\}')
+	else
+		tasks_args=$(echo "$@" | awk '{print $1}')
+	fi
+	if [[ ! "$tasks_args" =~ ^[a-f0-9] ]]; then
+		echo "${basename}: chosen tasks: $tasks_args"
+		echo "${basename}: Unless your report is 'all', you should use reports with numbers at their first columns."
+		echo "${basename}: Please update your taskrc so all of your reports will print the task's ID/UUID at the left most column."
+		echo "${basename}: Or, alternatively, choose a line that has a number in it's beginning."
 		echo ---------------------------------------------------------------------------
 		echo Press any key to continue
 		read
@@ -52,11 +60,11 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 			;;
 		append|modify)
 			echo "Run command:"
-			read -p "task $_TASKFZF_TASK_ACT " args
-			task "$1" "$_TASKFZF_TASK_ACT" "$args"
+			read -p "task $tasks_args $_TASKFZF_TASK_ACT " args
+			task $tasks_args "$_TASKFZF_TASK_ACT" "$args"
 			;;
 		*)
-			task "$1" "$_TASKFZF_TASK_ACT" 
+			task $tasks_args "$_TASKFZF_TASK_ACT"
 			;;
 	esac
 	# Prints a banner for after action view - it's a dirty and dumb version of
@@ -143,17 +151,18 @@ while (($? != 130)); do
 	# can't use abort because otherwise we'll get $? == 130 and the loop will
 	# quit.
 	#
+	if [[ "$tw_args" =~ "all" ]]; then
+		export _TASKFZF_REPORT=all
+	fi
 	tw $tw_args | fzf --ansi \
 		--multi \
-		--bind="D:execute(env _TASKFZF_TASK_ACT=do $0 {+1} < /dev/tty > /dev/tty 2>&1 )+print-query" \
-		--bind="X:execute(env _TASKFZF_TASK_ACT=delete $0 {+1} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="D:execute(env _TASKFZF_TASK_ACT=do $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="X:execute(env _TASKFZF_TASK_ACT=delete $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="U:execute(env _TASKFZF_TASK_ACT=undo $0)+print-query" \
-		--bind="E:execute(env _TASKFZF_TASK_ACT=edit $0 {+1} < /dev/tty > /dev/tty 2>&1 )+print-query" \
-		--bind="A:execute(env _TASKFZF_TASK_ACT=append $0 {+1} < /dev/tty > /dev/tty 2>&1 )+print-query" \
-		--bind="M:execute(env _TASKFZF_TASK_ACT=modify $0 {+1} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="E:execute(env _TASKFZF_TASK_ACT=edit $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="A:execute(env _TASKFZF_TASK_ACT=append $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="M:execute(env _TASKFZF_TASK_ACT=modify $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="R:execute(env _TASKFZF_LIST_CHANGE=report $0)+print-query" \
 		--bind="C:execute(env _TASKFZF_LIST_CHANGE=context $0)+print-query" \
-		--bind="enter:execute(clear; task information {+1} | less)"
-		# TODO: take care somehow of the 'all' report where no ID is in the
-		# first column but a UUID is present.
+		--bind="enter:execute(env _TASKFZF_TASK_ACT=information $0 {+} | less)"
 done

@@ -38,6 +38,7 @@ an action.
 - `U` undo the last action performed (`task undo`).
 - `E` edits the task in your editor (`task edit`).
 - `A` appends a text to the tasks using a shell input (`task append`).
+- `N` annotates a text to a task using a shell input (`task annotate`).
 - `M` modifies a task using a shell input (`task modify`).
 
 ⚠ Important Note! ⚠ The script expects all reports to put in their 1st column

@@ -58,7 +58,7 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 			# Doesn't need arguments
 			task undo
 			;;
-		append|modify)
+		append|modify|annotate)
 			echo "Run command:"
 			read -p "task $tasks_args $_TASKFZF_TASK_ACT " args
 			task $tasks_args "$_TASKFZF_TASK_ACT" "$args"
@@ -161,6 +161,7 @@ while (($? != 130)); do
 		--bind="U:execute(env _TASKFZF_TASK_ACT=undo $0)+print-query" \
 		--bind="E:execute(env _TASKFZF_TASK_ACT=edit $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="A:execute(env _TASKFZF_TASK_ACT=append $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="N:execute(env _TASKFZF_TASK_ACT=annotate $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="M:execute(env _TASKFZF_TASK_ACT=modify $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="R:execute(env _TASKFZF_LIST_CHANGE=report $0)+print-query" \
 		--bind="C:execute(env _TASKFZF_LIST_CHANGE=context $0)+print-query" \

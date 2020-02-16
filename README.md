@@ -31,6 +31,9 @@ to mitigate key bindings clashes with a parent program `taskfzf` may run inside
 (e.g tmux, Neovim's `:term` etc.), I decided to bind every upper case letter to
 an action.
 
+Pressing `?` prints a summary of all key bindings and their actions but the
+lists here explain a bit more.
+
 #### Perform an action over the selected tasks
 
 - `D` marks the tasks as done (`task do`).

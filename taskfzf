@@ -13,6 +13,22 @@ export LESS="-r"
 
 basename="$(basename $0)"
 
+if [[ ${_TASKFZF_SHOW} == "keys" ]]; then
+	echo KEY $'\t'Action
+	echo === $'\t'======
+	echo D$'\t\t'"Mark tasks as Done"
+	echo X$'\t\t'"Delete tasks"
+	echo U$'\t\t'"Undo last action"
+	echo E$'\t\t'"Edit selected tasks with \$EDITOR"
+	echo A$'\t\t'"Append to first selected task"
+	echo N$'\t\t'"Annotate the first selected task"
+	echo M$'\t\t'"Modify the first selected task"
+	echo R$'\t\t'"Change report"
+	echo C$'\t\t'"Change context"
+	echo ?$'\t\t'"Show keys"
+	exit 0
+fi
+
 # set a file path that it's content will mark how to execute the next command
 # in the main loop
 current_filter=${XDG_RUNTIME_DIR:-${XDG_CACHE_DIR:-${TMP-/tmp}}}/taskfzf-current-filter
@@ -179,5 +195,6 @@ while (($? != 130)); do
 		--bind="M:execute(env _TASKFZF_TASK_ACT=modify $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="R:execute(env _TASKFZF_LIST_CHANGE=report $0)+print-query" \
 		--bind="C:execute(env _TASKFZF_LIST_CHANGE=context $0)+print-query" \
+		--bind="?:execute(env _TASKFZF_SHOW=keys $0 | less)+print-query" \
 		--bind="enter:execute(env _TASKFZF_TASK_ACT=information $0 {+f} | less)"
 done

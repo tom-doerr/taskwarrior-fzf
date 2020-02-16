@@ -38,9 +38,9 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 	clear
 	# checks if the arguments given to the task are numbers only
 	if [[ "$_TASKFZF_REPORT" == "all" ]]; then
-		tasks_args=$(echo "$@" | grep -o '[0-9a-f]\{8\}')
+		tasks_args=$(grep -o '[0-9a-f]\{8\}' $@)
 	else
-		tasks_args=$(echo "$@" | awk '{print $1}')
+		tasks_args=$(awk '{print $1}' $@)
 	fi
 	if [[ ! "$tasks_args" =~ ^[a-f0-9] ]]; then
 		echo "${basename}: chosen tasks: $tasks_args"
@@ -146,24 +146,27 @@ while (($? != 130)); do
 	# - See https://github.com/junegunn/fzf/issues/1593#issuecomment-498007983
 	# for an explanation of that tty redirection.
 	#
-	# - we add a 'print-query' action after 'execute' so this fzf process will
+	# - We add a 'print-query' action after 'execute' so this fzf process will
 	# quit afterwards, leaving space for the next iteration of the loop. We
 	# can't use abort because otherwise we'll get $? == 130 and the loop will
 	# quit.
 	#
+	# - We use {+f} instead of {+} because it's easier to parse a file
+	# containing the lines chosen instead of one line containing all lines
+	# chosen given as a CLI argument
 	if [[ "$tw_args" =~ "all" ]]; then
 		export _TASKFZF_REPORT=all
 	fi
 	tw $tw_args | fzf --ansi \
 		--multi \
-		--bind="D:execute(env _TASKFZF_TASK_ACT=do $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
-		--bind="X:execute(env _TASKFZF_TASK_ACT=delete $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="D:execute(env _TASKFZF_TASK_ACT=do $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="X:execute(env _TASKFZF_TASK_ACT=delete $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="U:execute(env _TASKFZF_TASK_ACT=undo $0)+print-query" \
-		--bind="E:execute(env _TASKFZF_TASK_ACT=edit $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
-		--bind="A:execute(env _TASKFZF_TASK_ACT=append $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
-		--bind="N:execute(env _TASKFZF_TASK_ACT=annotate $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
-		--bind="M:execute(env _TASKFZF_TASK_ACT=modify $0 {+} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="E:execute(env _TASKFZF_TASK_ACT=edit $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="A:execute(env _TASKFZF_TASK_ACT=append $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="N:execute(env _TASKFZF_TASK_ACT=annotate $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="M:execute(env _TASKFZF_TASK_ACT=modify $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="R:execute(env _TASKFZF_LIST_CHANGE=report $0)+print-query" \
 		--bind="C:execute(env _TASKFZF_LIST_CHANGE=context $0)+print-query" \
-		--bind="enter:execute(env _TASKFZF_TASK_ACT=information $0 {+} | less)"
+		--bind="enter:execute(env _TASKFZF_TASK_ACT=information $0 {+f} | less)"
 done

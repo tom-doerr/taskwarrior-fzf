@@ -38,9 +38,9 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 	clear
 	# checks if the arguments given to the task are numbers only
 	if [[ "$_TASKFZF_REPORT" == "all" ]]; then
-		tasks_args=$(grep -o '[0-9a-f]\{8\}' $@)
+		tasks_args=$(grep -o '[0-9a-f]\{8\}' $@ | tr '\n' ' ')
 	else
-		tasks_args=$(awk '{print $1}' $@)
+		tasks_args=$(awk '{printf $1" "} END {printf "\n"}' $@)
 	fi
 	if [[ ! "$tasks_args" =~ ^[a-f0-9] ]]; then
 		echo "${basename}: chosen tasks: $tasks_args"
@@ -51,6 +51,17 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 		echo Press any key to continue
 		read
 		exit $?
+	fi
+	# Other actions (such as edit / append etc) can't be used upon multiple tasks
+	if [[ "$_TASKFZF_TASK_ACT" =~ ^(modify|append|annotate)$ ]]; then
+		if [[ "$tasks_args" =~ " " ]]; then
+			tasks_args="${tasks_args%% *}"
+			clear
+			echo "${basename}: WARNING: Only the first task ($tasks_args) will be used when $_TASKFZF_TASK_ACT -ing it."
+			echo ---------------------------------------------------------------------------
+			echo Press any key to continue
+			read
+		fi
 	fi
 	# Actually perform the actions upon the tasks
 	case "$_TASKFZF_TASK_ACT" in

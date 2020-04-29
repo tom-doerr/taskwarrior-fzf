@@ -1,0 +1,68 @@
+== Taskwarrior fzf interface
+
+An https://github.com/junegunn/fzf[fzf] based UI for
+https://taskwarrior.org/[taskwarrior], implemented as a `/bin/sh`
+script.
+
+=== Install
+
+Link / Copy / Move the file `taskfzf` from this repo to your `$PATH`.
+
+=== Usage
+
+==== Command Line Arguments
+
+Launching `taskfzf`, will present you an `fzf` interface where every
+task is a line you can filter out using `fzf`’s magical search.
+
+Without arguments, you’ll see the list of tasks `task` would list if
+given no arguments.
+
+You can supply a ``report'' argument (e.g `ls`, `list`, `next`..) to
+`taskfzf` as you’d supply `task`.
+
+Besides that, `taskfzf` also accepts modifications to your config using
+`rc.` arguments given right before the optional report argument.
+
+==== Key Bindings
+
+`taskfzf` uses https://www.mankier.com/1/fzf#Key_Bindings[`fzf`’s
+bindings] to perform actions over the highlighted task or to change the
+list of tasks presented. Since tasks are usually written in lower case
+letters, and in order to mitigate key bindings clashes with a parent
+program `taskfzf` may run inside (e.g tmux, Neovim’s `:term` etc.), I
+decided to bind every upper case letter to an action.
+
+Pressing `?` prints a summary of all key bindings and their actions but
+the lists here explain a bit more.
+
+===== Perform an action over the selected tasks
+
+* `D` marks the tasks as done (`task do`).
+* `X` Deletes the tasks (`task del`).
+* `U` undo the last action performed (`task undo`).
+* `E` edits the task in your editor (`task edit`).
+* `A` appends a text to the tasks using a shell input (`task append`).
+* `N` annotates a text to a task using a shell input (`task annotate`).
+* `M` modifies a task using a shell input (`task modify`).
+
+⚠ Important Note! ⚠ The script expects all reports to put in their 1st
+column the task’s number. You will get a warning when trying to perform
+actions upon a certain task if that’s not the case. Adjust your reports
+accordingly!
+
+===== Change the current list of tasks
+
+Each of the following key bindings changes the list of tasks you can
+perform an actions upon. `taskfzf` does so by reprinting the list of
+tasks with a different context (`rc.context`) or with a different
+``report''.
+
+_Choosing_ a different context/report is also performed by `fzf`.
+`task reports` or `task contexts` supply the list of candidates.
+
+In the tasks view, you can prompt for a different report / context
+using:
+
+* `R` changes the current ``report'' (`task reports`).
+* `C` changes the current context (`task contexts`).

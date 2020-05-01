@@ -53,7 +53,7 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 	# taskwarrior printed when doing the actions below.
 	clear
 	# checks if the arguments given to the task are numbers only
-	if [[ "$_TASKFZF_REPORT" == "all" ]]; then
+	if [ "$_TASKFZF_REPORT" = "all" ]; then
 		tasks_args=$(grep -o '[0-9a-f]\{8\}' $@ | tr '\n' ' ')
 	else
 		tasks_args=$(awk '{printf $1" "} END {printf "\n"}' $@)

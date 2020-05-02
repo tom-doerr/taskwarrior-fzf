@@ -25,6 +25,8 @@ if [ "${_TASKFZF_SHOW}" = "keys" ]; then
 	echo M$'\t\t'"Modify the first selected task"
 	echo R$'\t\t'"Change report"
 	echo C$'\t\t'"Change context"
+	echo S$'\t\t'"Start task"
+	echo P$'\t\t'"Stop task"
 	echo ?$'\t\t'"Show keys"
 	exit 0
 fi
@@ -197,6 +199,8 @@ while [ $? != 130 ]; do
 		--bind="A:execute(env _TASKFZF_TASK_ACT=append $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="N:execute(env _TASKFZF_TASK_ACT=annotate $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="M:execute(env _TASKFZF_TASK_ACT=modify $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="S:execute(env _TASKFZF_TASK_ACT=start $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="P:execute(env _TASKFZF_TASK_ACT=stop $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="R:execute(env _TASKFZF_LIST_CHANGE=report $0)+print-query" \
 		--bind="C:execute(env _TASKFZF_LIST_CHANGE=context $0)+print-query" \
 		--bind="?:execute(env _TASKFZF_SHOW=keys $0 | less)+print-query" \

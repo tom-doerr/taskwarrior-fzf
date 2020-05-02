@@ -6,14 +6,14 @@
 
 # The following alias is meant for rc options we'll always set unconditionally
 # so the UI will work
-alias tw='task rc.defaultwidth=0 rc.defaultheight=0 rc.verbose=nothing rc._forcecolor=on'
+tw='task rc.defaultwidth=0 rc.defaultheight=0 rc.verbose=nothing rc._forcecolor=on'
 
 # Make all less invocations interpret ANSI colors
 export LESS="-r"
 
 basename="$(basename $0)"
 
-if [[ ${_TASKFZF_SHOW} == "keys" ]]; then
+if [ "${_TASKFZF_SHOW}" = "keys" ]; then
 	echo KEY $'\t'Action
 	echo === $'\t'======
 	echo D$'\t\t'"Mark tasks as Done"
@@ -53,32 +53,36 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 	# taskwarrior printed when doing the actions below.
 	clear
 	# checks if the arguments given to the task are numbers only
-	if [[ "$_TASKFZF_REPORT" == "all" ]]; then
+	if [ "$_TASKFZF_REPORT" = "all" ]; then
 		tasks_args=$(grep -o '[0-9a-f]\{8\}' $@ | tr '\n' ' ')
 	else
 		tasks_args=$(awk '{printf $1" "} END {printf "\n"}' $@)
 	fi
-	if [[ ! "$tasks_args" =~ ^[a-f0-9] ]]; then
-		echo "${basename}: chosen tasks: $tasks_args"
-		echo "${basename}: Unless your report is 'all', you should use reports with numbers at their first columns."
-		echo "${basename}: Please update your taskrc so all of your reports will print the task's ID/UUID at the left most column."
-		echo "${basename}: Or, alternatively, choose a line that has a number in it's beginning."
-		echo ---------------------------------------------------------------------------
-		echo Press any key to continue
-		read
-		exit $?
-	fi
-	# Other actions (such as edit / append etc) can't be used upon multiple tasks
-	if [[ "$_TASKFZF_TASK_ACT" =~ ^(modify|append|annotate)$ ]]; then
-		if [[ "$tasks_args" =~ " " ]]; then
-			tasks_args="${tasks_args%% *}"
-			clear
-			echo "${basename}: WARNING: Only the first task ($tasks_args) will be used when $_TASKFZF_TASK_ACT -ing it."
+	case "$tasks_args" in
+		^[a-f0-9])
+			echo "${basename}: chosen tasks: $tasks_args"
+			echo "${basename}: Unless your report is 'all', you should use reports with numbers at their first columns."
+			echo "${basename}: Please update your taskrc so all of your reports will print the task's ID/UUID at the left most column."
+			echo "${basename}: Or, alternatively, choose a line that has a number in it's beginning."
 			echo ---------------------------------------------------------------------------
 			echo Press any key to continue
 			read
-		fi
-	fi
+			exit $?
+			;;
+	esac
+	# Other actions (such as edit / append etc) can't be used upon multiple tasks
+	case "$_TASKFZF_TASK_ACT" in
+		modify|append|annotate$)
+			if [ "$tasks_args" = "${tasks_args%% *}" ]; then
+				tasks_args="${tasks_args%% *}"
+				clear
+				echo "${basename}: WARNING: Only the first task ($tasks_args) will be used when $_TASKFZF_TASK_ACT -ing it."
+				echo ---------------------------------------------------------------------------
+				echo Press any key to continue
+				read
+			fi
+			;;
+	esac
 	# Actually perform the actions upon the tasks
 	case "$_TASKFZF_TASK_ACT" in
 		undo)
@@ -120,7 +124,7 @@ if [ -n "$_TASKFZF_LIST_CHANGE" ]; then
 			done
 			;;
 		context)
-			context_str='rc.context='"$(tw context | fzf --ansi --no-multi \
+			context_str='rc.context='"$($tw context | fzf --ansi --no-multi \
 				--bind='enter:execute@echo {1}@+abort' \
 			)"
 			# If the report wasn't changed, we take the last argument that was given
@@ -155,11 +159,11 @@ fi
 # standalone scripts because it's a program and not a pure shell function.
 
 # While Ctrl-c wasn't pressed inside fzf
-while (($? != 130)); do
+while [ $? != 130 ]; do
 
 	# If the marker file does exists, it's because the variables _TASKFZF_TASK_ACT
 	# or _TASKFZF_LIST_CHANGE were set. That's why we get the arguments for tw from there.
-	if [[ -w "$current_filter" ]]; then
+	if [ -w "$current_filter" ]; then
 		tw_args="$(cat $current_filter)"
 	else
 		# otherwise, we can rest assure this is the initial run of this program and so: 
@@ -181,10 +185,10 @@ while (($? != 130)); do
 	# - We use {+f} instead of {+} because it's easier to parse a file
 	# containing the lines chosen instead of one line containing all lines
 	# chosen given as a CLI argument
-	if [[ "$tw_args" =~ "all" ]]; then
-		export _TASKFZF_REPORT=all
-	fi
-	tw $tw_args | fzf --ansi \
+	case "$tw_args" in
+		*all*) export _TASKFZF_REPORT=all ;;
+	esac
+	$tw $tw_args | fzf --ansi \
 		--multi \
 		--bind="D:execute(env _TASKFZF_TASK_ACT=do $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="X:execute(env _TASKFZF_TASK_ACT=delete $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \

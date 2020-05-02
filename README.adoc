@@ -45,6 +45,8 @@ the lists here explain a bit more.
 * `A` appends a text to the tasks using a shell input (`task append`).
 * `N` annotates a text to a task using a shell input (`task annotate`).
 * `M` modifies a task using a shell input (`task modify`).
+* `S` starts the tasks (`task start`).
+* `P` stops the tasks (`task stop`).
 
 IMPORTANT: The script expects all reports to put in their 1st
 column the task’s number. You will get a warning when trying to perform

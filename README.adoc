@@ -6,7 +6,8 @@ script.
 
 === Install
 
-Link / Copy / Move the file `taskfzf` from this repo to your `$PATH`.
+1. Link / Copy / Move the file `taskfzf` from this repo to your `$PATH`.
+2. Make sure you have fzf 19.0 or newer installed.
 
 === Usage
 

@@ -121,32 +121,33 @@ if [ -n "$_TASKFZF_LIST_CHANGE" ]; then
 	# the case we are changing the report or the context
 	case $_TASKFZF_LIST_CHANGE in
 		report)
-			report_str="$(tw reports | head -n -1 | fzf --ansi --no-multi \
+			report_str="$($tw reports | head -n -1 | fzf --ansi --no-multi \
 				--bind='enter:execute@echo {1}@+abort' \
 			)"
-			# If the context wasn't changed, we take the 1st argument that has
-			# rc.context= given originally in the command line and that we
-			# saved in $current_filter in the initial run of the main loop.
-			for context_str in $(cat "$current_filter"); do
-				if [[ "$context_str" =~ "rc.context=" ]]; then
-					break
-				fi
-			done
 			;;
 		context)
 			context_str='rc.context='"$($tw context | fzf --ansi --no-multi \
 				--bind='enter:execute@echo {1}@+abort' \
 			)"
-			# If the report wasn't changed, we take the last argument that was given
-			# originally in the command line and that we saved in $current_filter in
-			# the initial run of the main loop.
-			for report_str in $(cat "$current_filter"); do
-				true
-			done
 			;;
 	esac
+
 	# We save the next command line arguments for the next, outer loop
 	echo "$context_str" "$report_str" > $current_filter
+	exit
+fi
+
+if [ -n "$_TASKFZF_RELOAD" ]; then
+	filter="$(cat "$current_filter")"
+	output=$($tw $filter)
+	# If there's no output at all, fzf be unusable saying something like:
+	# [Command failed: env _TASKFZF_RELOAD=true ./taskfzf]
+	# Hence, we check it first and print a more gracefull message instead
+	if [ -n "$output" ]; then
+		echo "$output"
+	else
+		echo No tasks were found in filter $filter
+	fi
 	exit
 fi
 
@@ -209,8 +210,8 @@ while [ $? != 130 ]; do
 		--bind="M:execute(env _TASKFZF_TASK_ACT=modify $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="S:execute(env _TASKFZF_TASK_ACT=start $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="P:execute(env _TASKFZF_TASK_ACT=stop $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
-		--bind="R:execute(env _TASKFZF_LIST_CHANGE=report $0)+print-query" \
-		--bind="C:execute(env _TASKFZF_LIST_CHANGE=context $0)+print-query" \
+		--bind="R:execute(env _TASKFZF_LIST_CHANGE=report $0)+reload(env _TASKFZF_RELOAD=true $0)" \
+		--bind="C:execute(env _TASKFZF_LIST_CHANGE=context $0)+reload(env _TASKFZF_RELOAD=true $0)" \
 		--bind="?:execute(env _TASKFZF_SHOW=keys $0 | less)+print-query" \
 		--bind="enter:execute(env _TASKFZF_TASK_ACT=information $0 {+f} | less)"
 done

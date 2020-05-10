@@ -121,7 +121,7 @@ if [ -n "$_TASKFZF_LIST_CHANGE" ]; then
 	# the case we are changing the report or the context
 	case $_TASKFZF_LIST_CHANGE in
 		report)
-			report_str="$($tw reports | head -n -1 | fzf --ansi --no-multi \
+			report_str="$($tw reports | sed '$d' | fzf --ansi --no-multi \
 				--bind='enter:execute@echo {1}@+abort' \
 			)"
 			;;

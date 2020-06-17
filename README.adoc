@@ -20,7 +20,7 @@ task is a line you can filter out using `fzf`’s magical search.
 Without arguments, you’ll see the list of tasks `task` would list if
 given no arguments.
 
-You can supply a ``report'' argument (e.g `ls`, `list`, `next`..) to
+You can supply a `report` argument (e.g `ls`, `list`, `next`..) to
 `taskfzf` as you’d supply `task`.
 
 Besides that, `taskfzf` also accepts modifications to your config using

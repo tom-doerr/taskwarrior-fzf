@@ -183,6 +183,12 @@ while [ $? != 130 ]; do
 		echo "$tw_args" > $current_filter
 	fi
 
+	# all is a type of report we need to apply some heuristics to, we at least
+	# try to detect it as so, see
+	# https://gitlab.com/doronbehar/taskwarrior-fzf/-/issues/8#note_339724564
+	case "$tw_args" in
+		*all*) export _TASKFZF_REPORT=all ;;
+	esac
 	# A few things to notice: 
 	# 
 	# - See https://github.com/junegunn/fzf/issues/1593#issuecomment-498007983
@@ -196,9 +202,6 @@ while [ $? != 130 ]; do
 	# - We use {+f} instead of {+} because it's easier to parse a file
 	# containing the lines chosen instead of one line containing all lines
 	# chosen given as a CLI argument
-	case "$tw_args" in
-		*all*) export _TASKFZF_REPORT=all ;;
-	esac
 	$tw $tw_args | fzf --ansi \
 		--multi \
 		--bind="D:execute(env _TASKFZF_TASK_ACT=do $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \

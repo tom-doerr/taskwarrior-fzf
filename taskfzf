@@ -156,7 +156,7 @@ fi
 # variables _TASKFZF_LIST_CHANGE and _TASKFZF_TASK_ACT themselves since we exit
 # if either of these variables is set and so we let go the outer loop continue
 # to execute.
-if [ -z "${_TASKFZF_LIST_CHANGE+1}" ] && [ -z "${_TASKFZF_TASK_ACT+1}" ]; then
+if [ -z "${_TASKFZF_LIST_CHANGE+1}" ] && [ -z "${_TASKFZF_TASK_ACT+1}" ] && [ "${_TASKFZF_INTERNAL}" != "reload" ]; then
 	rm -f $current_filter
 fi
 
@@ -172,8 +172,9 @@ fi
 # While Ctrl-c wasn't pressed inside fzf
 while [ $? != 130 ]; do
 
-	# If the marker file does exists, it's because the variables _TASKFZF_TASK_ACT
-	# or _TASKFZF_LIST_CHANGE were set. That's why we get the arguments for tw from there.
+	# If the marker file does exists, it's because the variables
+	# _TASKFZF_TASK_ACT / _TASKFZF_LIST_CHANGE or _TASKFZF_INTERNAL were set.
+	# That's why we get the arguments for tw from there.
 	if [ -w "$current_filter" ]; then
 		tw_args="$(cat $current_filter)"
 	else
@@ -189,6 +190,13 @@ while [ $? != 130 ]; do
 	case "$tw_args" in
 		*all*) export _TASKFZF_REPORT=all ;;
 	esac
+	# If we are supposed to reload the list, we count on the if procedure of
+	# current_filter to load the current arguments in $tw_args, and we use it
+	# here
+	if [ "${_TASKFZF_INTERNAL}" = "reload" ]; then
+		$tw $tw_args
+		exit $?
+	fi
 	# A few things to notice: 
 	# 
 	# - See https://github.com/junegunn/fzf/issues/1593#issuecomment-498007983
@@ -215,6 +223,7 @@ while [ $? != 130 ]; do
 		--bind="P:execute(env _TASKFZF_TASK_ACT=stop $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="R:execute(env _TASKFZF_LIST_CHANGE=report $0)+reload(env _TASKFZF_RELOAD=true $0)" \
 		--bind="C:execute(env _TASKFZF_LIST_CHANGE=context $0)+reload(env _TASKFZF_RELOAD=true $0)" \
+		--bind="ctrl-r:reload(env _TASKFZF_INTERNAL=reload $0)" \
 		--bind="?:execute(env _TASKFZF_SHOW=keys $0 | less)+print-query" \
 		--bind="enter:execute(env _TASKFZF_TASK_ACT=information $0 {+f} | less)"
 done

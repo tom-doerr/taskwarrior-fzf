@@ -55,7 +55,7 @@ column the task’s number. You will get a warning when trying to perform
 actions upon a certain task if that’s not the case. Adjust your reports
 accordingly!
 
-===== Change the current list of tasks
+===== Change / Reload the current list of tasks
 
 Each of the following key bindings changes the list of tasks you can
 perform an actions upon. `taskfzf` does so by reprinting the list of
@@ -70,3 +70,5 @@ using:
 
 * `R` changes the current ``report'' (`task reports`).
 * `C` changes the current context (`task contexts`).
+* `CTRL-R` reloads the current report, useful when another instance
+  of `task` changes your tasks.

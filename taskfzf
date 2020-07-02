@@ -33,6 +33,7 @@ if [ "${_TASKFZF_SHOW}" = "keys" ]; then
 	echo M$'\t\t'"Modify the first selected task"
 	echo R$'\t\t'"Change report"
 	echo C$'\t\t'"Change context"
+	echo CTRL-R$'\t'"Reload the current report"
 	echo S$'\t\t'"Start task"
 	echo P$'\t\t'"Stop task"
 	echo ?$'\t\t'"Show keys"

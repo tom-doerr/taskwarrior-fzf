@@ -83,7 +83,7 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 	esac
 	# Other actions (such as edit / append etc) can't be used upon multiple tasks
 	case "$_TASKFZF_TASK_ACT" in
-		modify|append|annotate$)
+		modify|append|annotate)
 			if [ "$tasks_args" = "${tasks_args%% *}" ]; then
 				tasks_args="${tasks_args%% *}"
 				clear
@@ -99,6 +99,15 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 		undo)
 			# Doesn't need arguments
 			task undo
+			;;
+		add)
+			# Needs no arguments but does need a prompt
+			echo "Add task:"
+			echo ---------
+			# TODO: Use current filter if appropriate
+			read -p "set tags or project? " attribute_args
+			read -p "Task description: " description_args
+			task "$attribute_args" add "$description_args"
 			;;
 		append|modify|annotate)
 			echo "Run command:"
@@ -217,6 +226,7 @@ while [ $? != 130 ]; do
 		--bind="X:execute(env _TASKFZF_TASK_ACT=delete $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="U:execute(env _TASKFZF_TASK_ACT=undo $0< /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="E:execute(env _TASKFZF_TASK_ACT=edit $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="T:execute(env _TASKFZF_TASK_ACT=add $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="A:execute(env _TASKFZF_TASK_ACT=append $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="N:execute(env _TASKFZF_TASK_ACT=annotate $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="M:execute(env _TASKFZF_TASK_ACT=modify $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \

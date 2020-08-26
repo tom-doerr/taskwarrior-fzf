@@ -42,7 +42,6 @@ the lists here explain a bit more.
 
 * `D` marks the tasks as done (`task do`).
 * `X` Deletes the tasks (`task del`).
-* `U` undo the last action performed (`task undo`).
 * `E` edits the task in your editor (`task edit`).
 * `A` appends a text to the tasks using a shell input (`task append`).
 * `N` annotates a text to a task using a shell input (`task annotate`).
@@ -54,6 +53,11 @@ IMPORTANT: The script expects all reports to put in their 1st
 column the task’s number. You will get a warning when trying to perform
 actions upon a certain task if that’s not the case. Adjust your reports
 accordingly!
+
+===== Other actions
+
+* `U` undo the last action performed (`task undo`).
+* `T` add interactively a new task (`task add`).
 
 ===== Change / Reload the current list of tasks
 

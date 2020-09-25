@@ -28,6 +28,7 @@ if [ "${_TASKFZF_SHOW}" = "keys" ]; then
 	echo X$'\t\t'"Delete tasks"
 	echo U$'\t\t'"Undo last action"
 	echo E$'\t\t'"Edit selected tasks with \$EDITOR"
+	echo T$'\t\t'"Add a new task"
 	echo A$'\t\t'"Append to first selected task"
 	echo N$'\t\t'"Annotate the first selected task"
 	echo M$'\t\t'"Modify the first selected task"

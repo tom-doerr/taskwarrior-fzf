@@ -19,6 +19,18 @@ fi
 # Make all less invocations interpret ANSI colors
 export LESS="-r"
 
+print_taskwarrior_bug_info(){
+	cat >&2 <<EOF
+Due to a bug in taskwarrior, taskwarrior-fzf was not able to get the filter of the
+Current context correctly. See https://github.com/GothenburgBitFactory/taskwarrior/issues/2219
+
+To workaround the issue, use contexts without dashes (-) in your ~/.taskrc. The
+context parsed was $1
+
+Use \`A\` to add a task without attempting to get attributes from current context.
+EOF
+}
+
 basename="$(basename $0)"
 
 if [ "${_TASKFZF_SHOW}" = "keys" ]; then
@@ -29,6 +41,7 @@ if [ "${_TASKFZF_SHOW}" = "keys" ]; then
 	echo U$'\t\t'"Undo last action"
 	echo E$'\t\t'"Edit selected tasks with \$EDITOR"
 	echo T$'\t\t'"Add a new task"
+	echo I$'\t\t'"Add a new task, with context of the currently highlighted task"
 	echo A$'\t\t'"Append to first selected task"
 	echo N$'\t\t'"Annotate the first selected task"
 	echo M$'\t\t'"Modify the first selected task"
@@ -105,10 +118,25 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 			# Needs no arguments but does need a prompt
 			echo "Add task:"
 			echo ---------
-			# TODO: Use current filter if appropriate
 			read -p "set tags or project? " attribute_args
 			read -p "Task description: " description_args
 			task "$attribute_args" add "$description_args"
+			;;
+		add-with-context)
+			context="$(sed 's/rc.context=\([^ ]\+\).*/\1/' "${current_filter}")"
+			case $context in
+				*-*)
+					print_taskwarrior_bug_info "$context"
+					;;
+				*)
+					context_attributes="$(task _get rc.context."$context")"
+					echo "Add task with attributes:"
+					echo "$context_attributes"
+					echo ---------
+					read -p "set additional attributes? " attribute_args
+					read -p "Task description: " description_args
+					task "$context_attributes" "$attribute_args" add "$description_args"
+			esac
 			;;
 		append|modify|annotate)
 			echo "Run command:"
@@ -228,6 +256,7 @@ while [ $? != 130 ]; do
 		--bind="U:execute(env _TASKFZF_TASK_ACT=undo $0< /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="E:execute(env _TASKFZF_TASK_ACT=edit $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="T:execute(env _TASKFZF_TASK_ACT=add $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
+		--bind="I:execute(env _TASKFZF_TASK_ACT=add-with-context $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="A:execute(env _TASKFZF_TASK_ACT=append $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="N:execute(env _TASKFZF_TASK_ACT=annotate $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \
 		--bind="M:execute(env _TASKFZF_TASK_ACT=modify $0 {+f} < /dev/tty > /dev/tty 2>&1 )+print-query" \

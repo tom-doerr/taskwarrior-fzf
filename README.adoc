@@ -44,6 +44,7 @@ the lists here explain a bit more.
 * `X` Deletes the tasks (`task del`).
 * `E` edits the task in your editor (`task edit`).
 * `T` edits the task in your editor (`task edit`).
+* `I` Add a new task, with context of the currently highlighted task
 * `A` appends a text to the tasks using a shell input (`task append`).
 * `N` annotates a text to a task using a shell input (`task annotate`).
 * `M` modifies a task using a shell input (`task modify`).

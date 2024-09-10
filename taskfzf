@@ -90,8 +90,8 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 			echo "${basename}: Please update your taskrc so all of your reports will print the task's ID/UUID at the left most column."
 			echo "${basename}: Or, alternatively, choose a line that has a number in it's beginning."
 			echo ---------------------------------------------------------------------------
-			echo Press any key to continue
-			read
+                        echo Press any key to continue
+                        read
 			exit $?
 			;;
 	esac
@@ -103,8 +103,8 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 				clear
 				echo "${basename}: WARNING: Only the first task ($tasks_args) will be used when $_TASKFZF_TASK_ACT -ing it."
 				echo ---------------------------------------------------------------------------
-				echo Press any key to continue
-				read
+                                echo Press any key to continue
+                                read
 			fi
 			;;
 	esac
@@ -150,8 +150,17 @@ if [ -n "$_TASKFZF_TASK_ACT" ]; then
 	# Prints a banner for after action view - it's a dirty and dumb version of
 	# piping to less.
 	echo ---------------------------------------------------------------------------
-	echo End of \`task "$_TASKFZF_TASK_ACT"\` output. Press any key to continue
-	read
+	#echo End of \`task "$_TASKFZF_TASK_ACT"\` output. Press any key to continue
+	#read
+        #stty sane
+        #reset
+        #echo
+        #exit
+        #tput reset
+        #tput init
+        #tput reset
+        #emulate -L zsh
+        #set -
 	exit $?
 fi
 
@@ -267,4 +276,6 @@ while [ $? != 130 ]; do
 		--bind="ctrl-r:reload(env _TASKFZF_INTERNAL=reload $0)" \
 		--bind="?:execute(env _TASKFZF_SHOW=keys $0 | less)+print-query" \
 		--bind="enter:execute(env _TASKFZF_TASK_ACT=information $0 {+f} | less)"
+        # exit
+        exit
 done
